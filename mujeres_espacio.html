@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Las primeras mujeres en el espacio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"Space Grotesk",sans-serif;background:#0b0f1a;color:#e8eaf0;overflow-x:hidden}
+:root{
+  --navy:#0b0f1a;--deep:#111827;--card:#161d2e;--border:rgba(255,255,255,.08);
+  --gold:#e8b84b;--blue:#4a9eff;--green:#34c984;--red:#e05252;--violet:#9b8dff;
+  --text:#e8eaf0;--muted:#8b93a8;
+  --serif:"Playfair Display",Georgia,serif;--mono:"JetBrains Mono",monospace;
+}
+#stars-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+/* ── LANDING ── */
+#landing{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 60%,#0e1a35 0%,#06090f 70%);
+  transition:opacity .8s ease,visibility .8s ease}
+#landing.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.landing-eyebrow{font-family:var(--mono);font-size:.75rem;letter-spacing:.25em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:1.5rem;opacity:0;animation:fadeUp .8s ease .4s forwards}
+.landing-title{font-family:var(--serif);font-size:clamp(2.4rem,6vw,5rem);line-height:1.1;
+  text-align:center;color:#fff;max-width:780px;padding:0 2rem;
+  opacity:0;animation:fadeUp .9s ease .65s forwards}
+.landing-title em{color:var(--gold);font-style:italic}
+.landing-sub{margin-top:1.4rem;font-size:1.05rem;color:var(--muted);text-align:center;
+  max-width:540px;padding:0 2rem;line-height:1.7;opacity:0;animation:fadeUp .9s ease .9s forwards}
+.landing-orbit{position:absolute;border-radius:50%;border:1px solid rgba(232,184,75,.12);animation:spin linear infinite}
+.orbit1{width:420px;height:420px;top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:28s}
+.orbit2{width:660px;height:660px;top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:46s;animation-direction:reverse}
+.orbit3{width:900px;height:900px;top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:64s}
+.planet{position:absolute;border-radius:50%;background:var(--gold);width:10px;height:10px;
+  top:-5px;left:50%;margin-left:-5px;box-shadow:0 0 14px 4px rgba(232,184,75,.6)}
+.orbit2 .planet{background:var(--blue);box-shadow:0 0 14px 4px rgba(74,158,255,.6);width:7px;height:7px;top:-3.5px;margin-left:-3.5px}
+.orbit3 .planet{background:var(--violet);box-shadow:0 0 14px 4px rgba(155,141,255,.5);width:8px;height:8px;top:-4px;margin-left:-4px}
+.btn-start{margin-top:3rem;padding:.9rem 2.8rem;border-radius:50px;background:var(--gold);
+  color:#0b0f1a;font-size:1rem;font-weight:700;letter-spacing:.04em;cursor:pointer;
+  transition:transform .2s,box-shadow .2s;box-shadow:0 0 30px rgba(232,184,75,.4);
+  opacity:0;animation:fadeUp .9s ease 1.2s forwards;border:none;font-family:inherit}
+.btn-start:hover{transform:scale(1.06);box-shadow:0 0 44px rgba(232,184,75,.6)}
+
+/* ── MAIN ── */
+#main{position:relative;z-index:1;display:none}
+#main.visible{display:block}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:50;background:rgba(11,15,26,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.4rem;
+  padding:.6rem 1.4rem;overflow-x:auto}
+nav::-webkit-scrollbar{display:none}
+.nav-logo{font-family:var(--mono);font-size:.8rem;color:var(--gold);white-space:nowrap;
+  margin-right:1rem;letter-spacing:.1em}
+.nav-tab{padding:.45rem 1rem;border-radius:30px;font-size:.82rem;font-weight:500;
+  white-space:nowrap;background:transparent;color:var(--muted);border:1px solid transparent;
+  transition:all .2s;cursor:pointer;font-family:inherit}
+.nav-tab:hover{color:var(--text);border-color:var(--border)}
+.nav-tab.active{color:#0b0f1a;font-weight:700}
+.nav-tab[data-tab="contexto"].active{background:var(--blue)}
+.nav-tab[data-tab="hecho"].active{background:var(--green)}
+.nav-tab[data-tab="fuente"].active{background:var(--gold)}
+.nav-tab[data-tab="impacto"].active{background:var(--red)}
+.nav-tab[data-tab="presente"].active{background:var(--violet)}
+
+/* ── SECTIONS ── */
+.section{min-height:100vh;padding:4.5rem 0 3rem;display:none}
+.section.active{display:block}
+.container{max-width:1060px;margin:0 auto;padding:0 1.6rem}
+
+/* ── REVEAL — fixed: starts visible, animates in ── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .55s ease,transform .55s ease}
+.reveal.in{opacity:1;transform:none}
+
+.section-eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;margin-bottom:.8rem}
+.section-title{font-family:var(--serif);font-size:clamp(1.9rem,4vw,3rem);line-height:1.15;margin-bottom:.7rem}
+.section-question{font-size:.92rem;line-height:1.7;color:var(--muted);border-left:3px solid;
+  padding-left:1rem;margin-bottom:2.2rem;max-width:680px}
+.section-body{font-size:.97rem;line-height:1.8;color:#c8cdd8}
+.section-body p{margin-bottom:1.1rem}
+.section-body strong{color:var(--text)}
+#contexto .section-eyebrow,#contexto .section-question{color:var(--blue);border-color:var(--blue)}
+#hecho .section-eyebrow,#hecho .section-question{color:var(--green);border-color:var(--green)}
+#fuente .section-eyebrow,#fuente .section-question{color:var(--gold);border-color:var(--gold)}
+#impacto .section-eyebrow,#impacto .section-question{color:var(--red);border-color:var(--red)}
+#presente .section-eyebrow,#presente .section-question{color:var(--violet);border-color:var(--violet)}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start}
+.four-col{display:grid;grid-template-columns:repeat(4,1fr);gap:1.1rem}
+@media(max-width:720px){.two-col,.four-col{grid-template-columns:1fr}}
+@media(max-width:900px){.four-col{grid-template-columns:repeat(2,1fr)}}
+
+/* ── TIMELINE ── */
+.timeline{position:relative;padding-left:2rem;margin:2.2rem 0}
+.timeline::before{content:"";position:absolute;left:.4rem;top:0;bottom:0;width:2px;
+  background:linear-gradient(to bottom,var(--blue),transparent)}
+.tl-item{position:relative;margin-bottom:1.8rem}
+.tl-dot{position:absolute;left:-1.65rem;top:.3rem;width:13px;height:13px;border-radius:50%;border:2px solid var(--navy)}
+.tl-year{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;color:var(--gold);margin-bottom:.2rem;text-transform:uppercase}
+.tl-event{font-weight:600;font-size:.97rem;margin-bottom:.2rem}
+.tl-detail{font-size:.87rem;line-height:1.7;color:var(--muted)}
+
+/* ── STAT CARDS ── */
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.4rem .9rem;text-align:center}
+.stat-num{font-family:var(--mono);font-size:2.4rem;font-weight:700;line-height:1;margin-bottom:.45rem}
+.stat-label{font-size:.8rem;color:var(--muted);line-height:1.5}
+
+/* ── PIONEER CARDS ── */
+.pioneer-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.3rem;margin:1.8rem 0}
+@media(max-width:560px){.pioneer-grid{grid-template-columns:1fr}}
+.pioneer-card{background:var(--card);border:1px solid var(--border);border-radius:15px;
+  overflow:hidden;cursor:pointer;transition:border-color .25s,transform .2s}
+.pioneer-card:hover{transform:translateY(-3px)}
+.pioneer-card.selected{border-width:2px}
+.pioneer-card[data-p="vt"].selected{border-color:var(--violet)}
+.pioneer-card[data-p="ss"].selected{border-color:var(--blue)}
+.pioneer-card[data-p="sr"].selected{border-color:var(--gold)}
+.pioneer-card[data-p="ec"].selected{border-color:var(--green)}
+
+/* ── SVG portrait placeholder ── */
+.pioneer-portrait{width:100%;height:200px;display:block;background:#1a2240}
+.pioneer-info{padding:1rem}
+.pioneer-name{font-weight:700;font-size:.97rem;margin-bottom:.2rem}
+.pioneer-sub{font-size:.78rem;color:var(--muted);margin-bottom:.55rem}
+.pioneer-badge{display:inline-block;font-size:.7rem;font-weight:600;padding:.22rem .75rem;border-radius:20px}
+
+.pioneer-detail-panel{background:var(--card);border:1px solid var(--border);border-radius:15px;
+  padding:1.8rem;display:none;margin-top:1.4rem;animation:fadeUp .3s ease}
+.pioneer-detail-panel.open{display:block}
+.pioneer-detail-name{font-family:var(--serif);font-size:1.5rem;margin-bottom:.3rem}
+.pioneer-detail-quote{font-style:italic;font-size:.9rem;color:var(--gold);
+  border-left:3px solid var(--gold);padding-left:.9rem;margin:1rem 0 1.3rem}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+@media(max-width:560px){.detail-grid{grid-template-columns:1fr}}
+.detail-row{display:flex;flex-direction:column;gap:.15rem}
+.detail-label{font-size:.67rem;font-family:var(--mono);letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.detail-val{font-size:.9rem;color:var(--text)}
+
+/* ── IMAGE WRAPPERS ── */
+.img-wrap{border-radius:10px;overflow:hidden;background:#1a2240;border:1px solid var(--border)}
+.img-wrap svg{display:block;width:100%;height:auto}
+.img-caption{font-size:.76rem;color:var(--muted);margin-top:.45rem;line-height:1.4}
+
+/* ── BLOCKQUOTE ── */
+.bq{border-left:4px solid var(--gold);background:rgba(232,184,75,.06);
+  border-radius:0 12px 12px 0;padding:1.3rem 1.5rem;margin:1.8rem 0}
+.bq-text{font-family:var(--serif);font-size:1.1rem;font-style:italic;line-height:1.7;
+  color:var(--text);margin-bottom:.6rem}
+.bq-attr{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.07em}
+
+/* ── HEADLINE BOX ── */
+.headline-box{background:#14181e;border:1px solid #2a2f3a;border-radius:8px;padding:.9rem 1.2rem;font-family:var(--serif)}
+.headline-paper{font-family:var(--mono);font-size:.63rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.3rem}
+.headline-text{font-size:1.02rem;color:#e8e4d0;line-height:1.35}
+
+/* ── SOURCE BADGE ── */
+.source-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(232,184,75,.1);
+  border:1px solid rgba(232,184,75,.25);color:var(--gold);font-family:var(--mono);
+  font-size:.7rem;letter-spacing:.1em;padding:.28rem .85rem;border-radius:20px;
+  margin-bottom:.9rem;text-transform:uppercase}
+
+/* ── VIDEO ── */
+.video-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#0c1120;
+  border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%}
+
+/* ── IMPACT CARD ── */
+.impact-card{background:var(--card);border:1px solid var(--border);border-radius:13px;
+  padding:1.3rem;border-top-width:3px}
+.impact-card-title{font-weight:600;font-size:.92rem;margin-bottom:.45rem}
+.impact-card-body{font-size:.86rem;line-height:1.7;color:var(--muted)}
+
+/* ── REFLECTION ── */
+.reflection{background:linear-gradient(135deg,rgba(155,141,255,.08),rgba(52,201,132,.06));
+  border:1px solid rgba(155,141,255,.22);border-radius:15px;padding:1.8rem 2rem;margin-top:1.8rem}
+.reflection-title{font-family:var(--serif);font-size:1.25rem;margin-bottom:.7rem}
+.reflection-body{font-size:.95rem;line-height:1.8;color:#c8cdd8}
+
+/* ── SOURCES BLOCK (compact) ── */
+#sources-block{background:#08090f;border-top:1px solid var(--border);padding:2.8rem 0}
+.sources-toggle{display:flex;align-items:center;gap:.8rem;cursor:pointer;user-select:none;margin-bottom:0}
+.sources-toggle-title{font-family:var(--serif);font-size:1.3rem}
+.sources-toggle-icon{font-family:var(--mono);font-size:.9rem;color:var(--gold);
+  transition:transform .25s;display:inline-block}
+.sources-toggle-icon.open{transform:rotate(180deg)}
+#sources-list{display:none;margin-top:1.4rem}
+#sources-list.open{display:block}
+.sources-cols{columns:2;column-gap:1.4rem}
+@media(max-width:640px){.sources-cols{columns:1}}
+.source-item{break-inside:avoid;margin-bottom:.9rem;padding:.85rem 1rem;
+  background:var(--card);border:1px solid var(--border);border-radius:10px}
+.source-type{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:.25rem}
+.source-type-p{color:var(--gold)} .source-type-s{color:var(--blue)} .source-type-m{color:var(--green)}
+.source-title{font-size:.86rem;font-weight:600;margin-bottom:.18rem}
+.source-detail{font-size:.77rem;color:var(--muted);line-height:1.45}
+
+/* ── DIVIDER ── */
+.divider{border:none;border-top:1px solid var(--border);margin:2.5rem 0}
+
+/* ── PROGRESS ── */
+#progress-bar{position:fixed;top:0;left:0;height:2px;
+  background:linear-gradient(90deg,var(--blue),var(--gold));z-index:200;transition:width .1s linear}
+
+/* ── KEYFRAMES ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes spin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){*,::before,::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<canvas id="stars-canvas"></canvas>
+<div id="progress-bar" style="width:0%"></div>
+
+<!-- ═══ LANDING ═══ -->
+<section id="landing">
+  <div class="landing-orbit orbit1"><div class="planet"></div></div>
+  <div class="landing-orbit orbit2"><div class="planet"></div></div>
+  <div class="landing-orbit orbit3"><div class="planet"></div></div>
+  <p class="landing-eyebrow">Historia · Guerra Fría · Ciencia</p>
+  <h1 class="landing-title">Las primeras mujeres <em>en el espacio</em></h1>
+  <p class="landing-sub">De Valentina Tereshkova (1963) a la era Artemis: cómo la carrera espacial se convirtió en un campo de batalla por la igualdad de género.</p>
+  <button class="btn-start" onclick="startExploring()">Explorar &rarr;</button>
+</section>
+
+<!-- ═══ MAIN ═══ -->
+<div id="main">
+<nav>
+  <span class="nav-logo">&#9733; ESPACIO</span>
+  <button class="nav-tab active" data-tab="contexto" onclick="showSection('contexto',this)">1 · Contexto histórico</button>
+  <button class="nav-tab" data-tab="hecho"    onclick="showSection('hecho',this)">2 · Las pioneras</button>
+  <button class="nav-tab" data-tab="fuente"   onclick="showSection('fuente',this)">3 · Fuente histórica</button>
+  <button class="nav-tab" data-tab="impacto"  onclick="showSection('impacto',this)">4 · Impacto</button>
+  <button class="nav-tab" data-tab="presente" onclick="showSection('presente',this)">5 · Hoy</button>
+</nav>
+
+<!-- ══ 1. CONTEXTO ══ -->
+<section id="contexto" class="section active">
+<div class="container">
+  <p class="section-eyebrow reveal">01 · Contexto histórico</p>
+  <h2 class="section-title reveal">La Guerra Fría<br>y la carrera espacial</h2>
+  <p class="section-question reveal">¿Qué estaba pasando en el mundo? ¿Por qué importaba el espacio dentro del enfrentamiento entre EE.UU. y la URSS?</p>
+
+  <div class="two-col reveal" style="gap:2.8rem;">
+    <div class="section-body">
+      <p>Entre 1947 y 1991 el mundo vivió la <strong>Guerra Fría</strong>: un enfrentamiento entre dos superpotencias —Estados Unidos y la Unión Soviética— que no se libró con balas, sino con tecnología, propaganda e ideología. El espacio se convirtió en uno de los escenarios más visibles de esa rivalidad.</p>
+      <p>El <strong>4 de octubre de 1957</strong> la URSS lanzó el <strong>Sputnik 1</strong>, el primer satélite artificial de la historia. El cohete que lo elevó era también el primer misil balístico intercontinental nuclear: la misma tecnología servía para explorar el cosmos y para amenazar al adversario. El presidente Eisenhower creó la <strong>NASA</strong> al año siguiente.</p>
+      <p>El <strong>12 de abril de 1961</strong> el cosmonauta <strong>Yuri Gagarin</strong> se convirtió en el primer ser humano en viajar al espacio. La respuesta estadounidense llegó con el programa Mercury y la promesa del presidente Kennedy: llegar a la Luna antes de que terminara la década.</p>
+      <p>En ese contexto, cada "primera vez" espacial equivalía a demostrar la superioridad de un sistema político. Ser la primera nación en enviar a una mujer al espacio no era solo un logro científico: era <strong>propaganda global</strong>.</p>
+    </div>
+    <div>
+      <div class="img-wrap reveal" style="margin-bottom:1.2rem">
+        <img src="sputnik.png" alt="Sputnik 1" style="width:100%;height:auto;display:block">
+        <p class="img-caption" style="padding:.4rem .8rem .6rem">Sputnik 1 · 4 octubre 1957 · primer satélite artificial de la historia</p>
+      </div>
+      <div class="img-wrap reveal">
+        <svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="bg1" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#1a2a4a"/>
+              <stop offset="100%" stop-color="#060c18"/>
+            </radialGradient>
+          </defs>
+          <rect width="600" height="340" fill="url(#bg1)"/>
+          <ellipse cx="300" cy="240" rx="90" ry="20" fill="#0a1525" opacity=".6"/>
+          <!-- cosmonaut silhouette -->
+          <circle cx="300" cy="110" r="38" fill="#c8ccd8" stroke="#9aa0b0" stroke-width="2"/>
+          <circle cx="300" cy="110" r="28" fill="#d8dce8"/>
+          <ellipse cx="300" cy="105" rx="14" ry="16" fill="#b0b8c8"/>
+          <rect x="270" y="148" width="60" height="70" rx="8" fill="#c8ccd8" stroke="#9aa0b0" stroke-width="1.5"/>
+          <rect x="258" y="155" width="20" height="45" rx="6" fill="#b8bcc8"/>
+          <rect x="322" y="155" width="20" height="45" rx="6" fill="#b8bcc8"/>
+          <rect x="278" y="218" width="20" height="50" rx="5" fill="#b8bcc8"/>
+          <rect x="302" y="218" width="20" height="50" rx="5" fill="#b8bcc8"/>
+          <text x="300" y="305" text-anchor="middle" fill="#e8b84b" font-family="monospace" font-size="13">YURI GAGARIN · 1961</text>
+          <text x="300" y="322" text-anchor="middle" fill="#8b93a8" font-family="monospace" font-size="11">Primer ser humano en el espacio · URSS</text>
+          <circle cx="60" cy="40" r="1.5" fill="white" opacity=".6"/>
+          <circle cx="530" cy="60" r="1" fill="white" opacity=".5"/>
+          <circle cx="80" cy="280" r="1.5" fill="white" opacity=".4"/>
+          <circle cx="500" cy="290" r="1" fill="white" opacity=".6"/>
+        </svg>
+        <p class="img-caption" style="padding:.4rem .8rem .6rem">Yuri Gagarin · 12 abril 1961 · primera órbita terrestre en 108 minutos</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="reveal" style="margin-top:2.8rem">
+    <h3 style="font-family:var(--serif);font-size:1.25rem;margin-bottom:1rem">Cronología de la carrera espacial</h3>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div>
+        <p class="tl-year">1957</p><p class="tl-event">Sputnik 1 — URSS</p>
+        <p class="tl-detail">Primer satélite artificial. El lanzador R-7 era también el primer misil balístico intercontinental nuclear.</p></div>
+      <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div>
+        <p class="tl-year">1961</p><p class="tl-event">Yuri Gagarin — primer ser humano en el espacio</p>
+        <p class="tl-detail">12 de abril: 108 minutos, una órbita. Kennedy promete la Luna antes de fin de la década.</p></div>
+      <div class="tl-item"><div class="tl-dot" style="background:var(--gold)"></div>
+        <p class="tl-year">1963</p><p class="tl-event">Valentina Tereshkova — primera mujer en el espacio</p>
+        <p class="tl-detail">Vostok 6 · 16–19 junio · 48 órbitas · ~71 horas. Propaganda y hito real al mismo tiempo.</p></div>
+      <div class="tl-item"><div class="tl-dot" style="background:var(--blue)"></div>
+        <p class="tl-year">1969</p><p class="tl-event">Apollo 11 — EE.UU. llega a la Luna</p>
+        <p class="tl-detail">20 de julio. Los 12 astronautas que caminaron sobre la Luna fueron todos hombres.</p></div>
+      <div class="tl-item"><div class="tl-dot" style="background:var(--green)"></div>
+        <p class="tl-year">1991</p><p class="tl-event">Fin de la Guerra Fría</p>
+        <p class="tl-detail">Disolución de la URSS. La carrera espacial cede paso a la cooperación internacional.</p></div>
+    </div>
+  </div>
+
+  <div class="reveal" style="margin-top:2.8rem">
+    <h3 style="font-family:var(--serif);font-size:1.2rem;margin-bottom:.8rem">La carrera espacial en imágenes</h3>
+    <div class="video-wrap">
+      <iframe src="https://www.youtube.com/embed/xvaEvCNZymo" title="La carrera espacial documental BBC" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    </div>
+    <p class="img-caption" style="margin-top:.5rem">Documental BBC: <em>The Space Race</em> — la rivalidad soviético-estadounidense (1957–1969)</p>
+  </div>
+</div>
+</section>
+
+<!-- ══ 2. LAS PIONERAS ══ -->
+<section id="hecho" class="section">
+<div class="container">
+  <p class="section-eyebrow reveal">02 · El hecho o proceso</p>
+  <h2 class="section-title reveal">Las pioneras</h2>
+  <p class="section-question reveal">¿Qué ocurrió? ¿Quiénes participaron? ¿Cómo se desarrolló cada misión?</p>
+  <p class="reveal" style="font-size:.88rem;color:var(--muted);margin-bottom:.4rem">Seleccioná una pionera para ver su historia completa</p>
+
+  <div class="pioneer-grid reveal">
+    <div class="pioneer-card selected" data-p="vt" onclick="selectPioneer(this)">
+      <img class="pioneer-portrait" src="tereshkova_card.png" alt="Valentina Tereshkova" style="object-fit:cover">
+      <div class="pioneer-info">
+        <p class="pioneer-name">Valentina Tereshkova</p>
+        <p class="pioneer-sub">&#127479;&#127482; URSS · Vostok 6 · 16–19 jun 1963</p>
+        <span class="pioneer-badge" style="background:rgba(155,141,255,.18);color:var(--violet)">1ª mujer en el espacio</span>
+      </div>
+    </div>
+
+    <div class="pioneer-card" data-p="ss" onclick="selectPioneer(this)">
+      <svg class="pioneer-portrait" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <defs><radialGradient id="pss" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#0e2040"/><stop offset="100%" stop-color="#060e1e"/></radialGradient></defs>
+        <rect width="400" height="200" fill="url(#pss)"/>
+        <circle cx="200" cy="75" r="36" fill="#c8b090" stroke="#a09070" stroke-width="1.5"/>
+        <ellipse cx="200" cy="68" rx="18" ry="20" fill="#b8a080"/>
+        <!-- flight suit elements -->
+        <rect x="172" y="111" width="56" height="60" rx="6" fill="#4a6080" stroke="#3a5070" stroke-width="1"/>
+        <rect x="158" y="116" width="18" height="40" rx="5" fill="#3a5070"/>
+        <rect x="224" y="116" width="18" height="40" rx="5" fill="#3a5070"/>
+        <rect x="183" y="118" width="34" height="16" rx="3" fill="#2a4060"/>
+        <text x="200" y="170" text-anchor="middle" fill="#4a9eff" font-family="monospace" font-size="11" font-weight="bold">SVETLANA SAVITSKAYA</text>
+        <text x="200" y="185" text-anchor="middle" fill="#8b93a8" font-family="monospace" font-size="9">🇷🇺 SOYUZ T-7/T-12 · 1982–84</text>
+        <circle cx="50" cy="25" r="1" fill="white" opacity=".5"/><circle cx="350" cy="40" r="1.5" fill="white" opacity=".4"/>
+      </svg>
+      <div class="pioneer-info">
+        <p class="pioneer-name">Svetlana Savitskaya</p>
+        <p class="pioneer-sub">&#127479;&#127482; URSS · Soyuz T-7 / T-12 · 1982–84</p>
+        <span class="pioneer-badge" style="background:rgba(74,158,255,.18);color:var(--blue)">1ª caminata espacial femenina</span>
+      </div>
+    </div>
+
+    <div class="pioneer-card" data-p="sr" onclick="selectPioneer(this)">
+      <img class="pioneer-portrait" src="sally_ride.png" alt="Sally Ride" style="object-fit:cover">
+      <div class="pioneer-info">
+        <p class="pioneer-name">Sally Ride</p>
+        <p class="pioneer-sub">&#127482;&#127480; EE.UU. · Challenger STS-7 · 18 jun 1983</p>
+        <span class="pioneer-badge" style="background:rgba(232,184,75,.18);color:var(--gold)">1ª astronauta estadounidense</span>
+      </div>
+    </div>
+
+    <div class="pioneer-card" data-p="ec" onclick="selectPioneer(this)">
+      <img class="pioneer-portrait" src="eileen_collins.png" alt="Eileen Collins" style="object-fit:cover">
+      <div class="pioneer-info">
+        <p class="pioneer-name">Eileen Collins</p>
+        <p class="pioneer-sub">&#127482;&#127480; EE.UU. · STS-63 / STS-93 · 1995–1999</p>
+        <span class="pioneer-badge" style="background:rgba(52,201,132,.18);color:var(--green)">1ª piloto y comandante</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="pioneer-detail" class="pioneer-detail-panel open reveal">
+    <div id="pd-inner"></div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 3. FUENTE HISTÓRICA ══ -->
+<section id="fuente" class="section">
+<div class="container">
+  <p class="section-eyebrow reveal">03 · Una fuente histórica</p>
+  <h2 class="section-title reveal">Las voces del momento</h2>
+  <p class="section-question reveal">¿Qué dicen las fuentes primarias y secundarias sobre cómo se vivió el vuelo de Tereshkova en 1963?</p>
+
+  <div class="reveal">
+    <div class="source-badge">&#128204; Fuente primaria — Discurso oficial · URSS · 1963</div>
+    <div class="bq">
+      <p class="bq-text">"La burguesía siempre afirma que las mujeres son el sexo débil. Ahora aquí pueden ver a una típica mujer soviética que, a ojos de la burguesía, es débil. ¡Miren lo que les ha mostrado a los astronautas de Estados Unidos! ¡Les ha mostrado quién es quién!"</p>
+      <p class="bq-attr">— Nikita Jruschov, Primer Ministro de la URSS, junio de 1963</p>
+    </div>
+    <div class="section-body">
+      <p><strong>¿Por qué elegimos esta fuente?</strong> Condensa en pocas palabras la tesis central: el vuelo fue simultáneamente un logro real y un instrumento de propaganda. Es una fuente primaria porque proviene directamente del gobernante soviético en el momento del hecho. Al mismo tiempo revela contradicciones: el mismo Jruschov usó el término diminutivo <em>"chica"</em> (девушка) en otras alocuciones, y la prensa oficial presentó a Tereshkova destacando rasgos convencionalmente femeninos. La igualdad proclamada tenía límites.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="reveal">
+    <div class="source-badge" style="background:rgba(155,141,255,.1);border-color:rgba(155,141,255,.3);color:var(--violet)">&#128204; Fuente primaria — Testimonio directo · Tereshkova · 1963</div>
+    <div class="bq" style="border-color:var(--violet);background:rgba(155,141,255,.05)">
+      <p class="bq-text">"¡Eh, cielo, quítate el sombrero, que allá voy!"</p>
+      <p class="bq-attr" style="color:var(--violet)">— Valentina Tereshkova, al despegar en la Vostok 6, 16 de junio de 1963 · verso adaptado del poeta Vladímir Mayakovski</p>
+    </div>
+    <div class="section-body">
+      <p>Al citar al poeta revolucionario Mayakovski, Tereshkova inscribía su hazaña dentro del imaginario soviético, conectando conquista espacial con poesía y revolución. Esta frase es una fuente primaria de primer orden: revela la dimensión emocional y cultural del vuelo.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="reveal">
+    <div class="source-badge">&#128240; Fuente secundaria — Prensa occidental · junio 1963</div>
+    <p class="section-body" style="margin-bottom:1rem"><strong>Los titulares de la prensa occidental</strong> permiten analizar cómo se recibió el hecho fuera de la URSS:</p>
+    <div class="two-col" style="gap:1rem;margin-bottom:1.2rem">
+      <div class="headline-box">
+        <p class="headline-paper">Springfield Union · Massachusetts · 17 jun 1963</p>
+        <p class="headline-text">SOVIET ORBITS FIRST COSMONETTE</p>
+      </div>
+      <div class="headline-box">
+        <p class="headline-paper">Chicago Tribune · 18 jun 1963</p>
+        <p class="headline-text">Russian Blonde in Space</p>
+      </div>
+    </div>
+    <div class="section-body">
+      <p>El término inventado <em>"cosmonette"</em> y el énfasis en el aspecto físico muestran que la prensa occidental filtró la hazaña técnica a través de estereotipos de género. Comparar estos titulares con el discurso de Jruschov permite ver que tanto la URSS como EE.UU. instrumentalizaron el género, cada una a su manera.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="reveal">
+    <div class="source-badge" style="background:rgba(52,201,132,.08);border-color:rgba(52,201,132,.25);color:var(--green)">&#127909; Fuente audiovisual — Archivo histórico · 1963</div>
+    <h3 style="font-family:var(--serif);font-size:1.15rem;margin-bottom:.8rem">Imágenes del regreso de Tereshkova</h3>
+    <div class="video-wrap">
+      <iframe src="https://www.youtube.com/embed/DpFQFHWBLaE" title="Valentina Tereshkova vuelo 1963" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    </div>
+    <p class="img-caption" style="margin-top:.5rem">Imágenes de archivo soviético del regreso de Tereshkova y su recibimiento en Moscú · 1963</p>
+  </div>
+</div>
+</section>
+
+<!-- ══ 4. IMPACTO ══ -->
+<section id="impacto" class="section">
+<div class="container">
+  <p class="section-eyebrow reveal">04 · Impacto y consecuencias</p>
+  <h2 class="section-title reveal">¿Qué cambió<br>después?</h2>
+  <p class="section-question reveal">¿Cómo reaccionó el mundo? ¿Qué significó para la Guerra Fría y para los derechos de la mujer?</p>
+
+  <div class="four-col reveal" style="margin-bottom:2.2rem">
+    <div class="stat-card"><p class="stat-num" style="color:var(--violet)">19</p><p class="stat-label">años hasta que la URSS volvió a enviar una mujer al espacio (Savitskaya, 1982)</p></div>
+    <div class="stat-card"><p class="stat-num" style="color:var(--blue)">20</p><p class="stat-label">años hasta la primera astronauta de EE.UU. (Sally Ride, 1983)</p></div>
+    <div class="stat-card"><p class="stat-num" style="color:var(--gold)">1.381</p><p class="stat-label">delegadas de 105 países en el Congreso Mundial de Mujeres, Moscú, junio 1963</p></div>
+    <div class="stat-card"><p class="stat-num" style="color:var(--red)">0</p><p class="stat-label">mujeres entre los 12 astronautas que pisaron la Luna, 1969–1972</p></div>
+  </div>
+
+  <div class="two-col reveal" style="margin-bottom:1.4rem">
+    <div class="impact-card" style="border-top-color:var(--violet)">
+      <p class="impact-card-title" style="color:var(--violet)">Para la Guerra Fría y la propaganda</p>
+      <p class="impact-card-body">El vuelo fue un triunfo propagandístico inmediato. Días después, Tereshkova fue exhibida en el <strong>Congreso Mundial de Mujeres de Moscú</strong> como prueba de la igualdad soviética. Se convirtió en embajadora cultural: miembro del Soviet Supremo (1966) y oradora ante la UNESCO. Los archivos soviéticos conservan cientos de cartas de mujeres de todo el mundo que vieron en "Gaviota" un símbolo de sus propias aspiraciones.</p>
+    </div>
+    <div class="impact-card" style="border-top-color:var(--blue)">
+      <p class="impact-card-title" style="color:var(--blue)">Para los derechos de la mujer</p>
+      <p class="impact-card-body">El impacto fue <strong>ambivalente</strong>. Por un lado, inspiró a mujeres de todo el mundo. Por otro, la URSS no volvió a enviar una mujer durante 19 años. En EE.UU., las <strong>Mercury 13</strong> —13 mujeres piloto que pasaron las mismas pruebas que los astronautas, superándolos en algunas— fueron rechazadas por el Congreso porque la NASA exigía ser piloto militar de pruebas, profesión vetada a las mujeres.</p>
+    </div>
+    <div class="impact-card" style="border-top-color:var(--gold)">
+      <p class="impact-card-title" style="color:var(--gold)">El caso de las Mercury 13</p>
+      <p class="impact-card-body">En 1960, el médico Randy Lovelace reclutó a 13 mujeres piloto que superaron pruebas físicas equivalentes a las de los astronautas. Jerrie Cobb se ubicó en el tercio superior de todos los candidatos. Una audiencia del Congreso (1962) confirmó su exclusión. El astronauta John Glenn declaró ante el Congreso que las mujeres "simplemente no eran pilotos de pruebas militares".</p>
+    </div>
+    <div class="impact-card" style="border-top-color:var(--red)">
+      <p class="impact-card-title" style="color:var(--red)">Barreras institucionales en EE.UU.</p>
+      <p class="impact-card-body">La exclusión de las mujeres de la aviación militar era política sistémica. Solo en <strong>1978</strong>, impulsada por el movimiento feminista, la NASA admitió a seis mujeres entre 35 seleccionados. Una de ellas, Sally Ride, volaría en 1983. El camino desde Tereshkova hasta Ride no fue lineal: fue una lucha.</p>
+    </div>
+  </div>
+
+  <div class="two-col reveal">
+    <div>
+      <div class="img-wrap">
+        <svg viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
+          <defs><radialGradient id="ic1" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#1a2a4a"/><stop offset="100%" stop-color="#060c18"/></radialGradient></defs>
+          <rect width="500" height="300" fill="url(#ic1)"/>
+          <!-- capsule outline -->
+          <ellipse cx="250" cy="120" rx="90" ry="100" fill="#2a3450" stroke="#4a5470" stroke-width="2"/>
+          <ellipse cx="250" cy="80" rx="60" ry="30" fill="#1a2440" stroke="#3a4460" stroke-width="1.5"/>
+          <!-- porthole -->
+          <circle cx="250" cy="110" r="28" fill="#0a1830" stroke="#6080a0" stroke-width="2"/>
+          <circle cx="250" cy="110" r="22" fill="#081428" stroke="#4a6080" stroke-width="1"/>
+          <!-- cosmonaut face in porthole -->
+          <circle cx="250" cy="110" r="14" fill="#c8b090"/>
+          <ellipse cx="250" cy="106" rx="8" ry="9" fill="#b8a080"/>
+          <!-- parachute attachment point at top -->
+          <line x1="250" y1="20" x2="250" y2="40" stroke="#8090a0" stroke-width="2"/>
+          <ellipse cx="250" cy="18" rx="20" ry="8" fill="none" stroke="#8090a0" stroke-width="1.5"/>
+          <text x="250" y="240" text-anchor="middle" fill="#e8b84b" font-family="monospace" font-size="12" font-weight="bold">VOSTOK 6 · 16–19 JUN 1963</text>
+          <text x="250" y="258" text-anchor="middle" fill="#9b8dff" font-family="monospace" font-size="10">Tereshkova · 48 órbitas · ~71 horas</text>
+          <text x="250" y="278" text-anchor="middle" fill="#8b93a8" font-family="monospace" font-size="9">Ilustración basada en archivos de la misión</text>
+          <circle cx="30" cy="30" r="1.5" fill="white" opacity=".5"/><circle cx="470" cy="50" r="1" fill="white" opacity=".6"/>
+          <circle cx="40" cy="260" r="1" fill="white" opacity=".4"/><circle cx="460" cy="270" r="1.5" fill="white" opacity=".5"/>
+        </svg>
+      </div>
+      <p class="img-caption">Cápsula Vostok 6 · Tereshkova en órbita · 48 vueltas a la Tierra en ~71 horas</p>
+    </div>
+    <div>
+      <div class="img-wrap">
+        <svg viewBox="0 0 500 300" xmlns="http://www.w3.org/2000/svg">
+          <rect width="500" height="300" fill="#0c1420"/>
+          <!-- isolation tank suggestion -->
+          <rect x="100" y="60" width="300" height="170" rx="40" fill="#1a2840" stroke="#2a3850" stroke-width="2"/>
+          <rect x="130" y="90" width="240" height="110" rx="20" fill="#0e1c30" stroke="#1e2c40" stroke-width="1.5"/>
+          <!-- figure lying down (sensory deprivation test) -->
+          <ellipse cx="250" cy="145" rx="100" ry="28" fill="#c8b890" stroke="#a89870" stroke-width="1"/>
+          <circle cx="350" cy="145" r="20" fill="#d4c0a0" stroke="#b4a080" stroke-width="1.5"/>
+          <ellipse cx="350" cy="141" rx="10" ry="11" fill="#c4b090"/>
+          <!-- monitoring equipment -->
+          <rect x="60" y="100" width="30" height="80" rx="4" fill="#1e2e48" stroke="#2e3e58" stroke-width="1"/>
+          <rect x="65" y="110" width="20" height="5" rx="1" fill="#34c984" opacity=".6"/>
+          <rect x="65" y="122" width="20" height="5" rx="1" fill="#4a9eff" opacity=".6"/>
+          <rect x="65" y="134" width="20" height="5" rx="1" fill="#e8b84b" opacity=".6"/>
+          <text x="250" y="258" text-anchor="middle" fill="#e8b84b" font-family="monospace" font-size="11" font-weight="bold">MERCURY 13 · JERRIE COBB</text>
+          <text x="250" y="276" text-anchor="middle" fill="#8b93a8" font-family="monospace" font-size="9">Prueba de aislamiento sensorial · ca. 1960 · EE.UU.</text>
+          <circle cx="35" cy="25" r="1.5" fill="white" opacity=".5"/><circle cx="465" cy="35" r="1" fill="white" opacity=".6"/>
+        </svg>
+      </div>
+      <p class="img-caption">Jerrie Cobb · Mercury 13 · prueba de aislamiento sensorial · ca. 1960 · pasó las mismas pruebas que los astronautas</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ══ 5. PRESENTE ══ -->
+<section id="presente" class="section">
+<div class="container">
+  <p class="section-eyebrow reveal">05 · Conexión con el presente</p>
+  <h2 class="section-title reveal">Del Vostok 6<br>a la era Artemis</h2>
+  <p class="section-question reveal">¿Qué tiene que ver el vuelo de Tereshkova con el mundo de hoy? La brecha persiste, pero también se están rompiendo barreras inéditas.</p>
+
+  <div class="four-col reveal" style="margin-bottom:2.2rem">
+    <div class="stat-card"><p class="stat-num" style="color:var(--blue)">12%</p><p class="stat-label">de todos los viajeros espaciales de la historia han sido mujeres (2020)</p></div>
+    <div class="stat-card"><p class="stat-num" style="color:var(--green)">31%</p><p class="stat-label">de investigadoras en ciencia en el mundo (UNESCO, 2022)</p></div>
+    <div class="stat-card"><p class="stat-num" style="color:var(--violet)">328</p><p class="stat-label">días seguidos en el espacio: récord de Christina Koch (feb 2020)</p></div>
+    <div class="stat-card"><p class="stat-num" style="color:var(--red)">0</p><p class="stat-label">mujeres asignadas al primer alunizaje Artemis hasta 2026</p></div>
+  </div>
+
+  <div class="two-col reveal" style="gap:2.4rem;margin-bottom:2rem">
+    <div class="section-body">
+      <h3 style="font-family:var(--serif);font-size:1.25rem;margin-bottom:.8rem">El programa Artemis y la promesa pendiente</h3>
+      <p>Ninguna mujer ha pisado todavía la Luna. Los 12 astronautas que caminaron sobre su superficie entre 1969 y 1972 fueron todos hombres. El programa <strong>Artemis</strong> de la NASA nació con el objetivo de llevar a "la primera mujer y la primera persona de color" a la superficie lunar.</p>
+      <p>En 2026, la misión <strong>Artemis II</strong> sobrevoló la Luna con <strong>Christina Koch</strong> a bordo —primera mujer en viajar más allá de la órbita terrestre baja— fijando el récord de distancia recorrida: 406.771 km. Sin embargo, el primer alunizaje fue trasladado a Artemis IV (≈2028) y la tripulación de Artemis III es íntegramente masculina. La promesa sigue siendo una promesa.</p>
+      <p>El paralelismo con 1963 es inquietante: otra vez un programa espacial anuncia "la primera mujer" como objetivo futuro mientras la historia avanza más lento de lo prometido.</p>
+    </div>
+    <div>
+      <div class="img-wrap reveal">
+        <img src="christina_koch.png" alt="Christina Koch" style="width:100%;height:auto;display:block">
+      </div>
+      <p class="img-caption">Christina Koch · actividad extravehicular · ISS · octubre 2019 · récord de permanencia femenina en el espacio</p>
+    </div>
+  </div>
+
+  <div class="two-col reveal" style="gap:2.4rem;margin-bottom:1.8rem">
+    <div>
+      <div class="img-wrap">
+        <img src="artemis_launch.png" alt="Lanzamiento Artemis I" style="width:100%;height:auto;display:block">
+      </div>
+      <p class="img-caption">Lanzamiento del cohete SLS — misión Artemis I · 16 noviembre 2022</p>
+    </div>
+    <div class="section-body">
+      <h3 style="font-family:var(--serif);font-size:1.25rem;margin-bottom:.8rem">La brecha de género en STEM persiste</h3>
+      <p>Según el informe de la UNESCO <em>Status and Trends of Women in Science</em> (2025), las mujeres representaban solo el <strong>31,1% de los investigadores del mundo en 2022</strong> —avance mínimo desde el 29,4% de 2012. Alrededor del <strong>35% de las graduadas en STEM</strong> son mujeres, cifra estancada durante una década.</p>
+      <p>Más de un tercio de las mujeres científicas encuestadas señaló el <strong>sexismo, el acoso o la violencia de género</strong> como principales obstáculos. Igual que en 1963, cuando a Tereshkova se la juzgó con un rasero diferente al de sus colegas varones, las barreras siguen siendo sociales, no biológicas.</p>
+      <p>Tereshkova, Savitskaya, Ride y Collins demuestran que el talento no tiene género. Los límites los pone la sociedad, no la biología.</p>
+    </div>
+  </div>
+
+  <div class="reflection reveal">
+    <h3 class="reflection-title">&#128173; Reflexión</h3>
+    <p class="reflection-body">El vuelo de Tereshkova demostró que las mujeres podían ir al espacio —pero no logró que fueran en igualdad de condiciones. Más de seis décadas después, seguimos debatiendo lo mismo: no <em>si</em> las mujeres pueden, sino <em>por qué</em> siguen siendo minoría. Mientras el programa Artemis promete llevar a "la primera mujer a la Luna", la pregunta que Tereshkova nos lega sigue vigente: ¿cuándo va a dejar de ser noticia que una mujer haga lo mismo que hacen los hombres?</p>
+  </div>
+
+  <div class="reveal" style="margin-top:2.4rem">
+    <h3 style="font-family:var(--serif);font-size:1.15rem;margin-bottom:.8rem">El legado de las pioneras hoy</h3>
+    <div class="video-wrap">
+      <iframe src="https://www.youtube.com/embed/QKa6Ea2VF6U" title="Women of Space NASA" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen loading="lazy"></iframe>
+    </div>
+    <p class="img-caption" style="margin-top:.5rem"><em>Women of Space</em> — NASA: historia y presente de las mujeres en la astronáutica</p>
+  </div>
+</div>
+</section>
+
+<!-- ══ FUENTES (compacto, desplegable) ══ -->
+<div id="sources-block">
+<div class="container">
+  <div class="sources-toggle" onclick="toggleSources()" role="button" aria-expanded="false" id="sources-btn">
+    <h2 class="sources-toggle-title">Fuentes consultadas</h2>
+    <span class="sources-toggle-icon" id="src-icon">&#9660;</span>
+    <span style="font-size:.8rem;color:var(--muted);margin-left:.3rem">— 12 referencias · clic para ver</span>
+  </div>
+  <div id="sources-list">
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.2rem;max-width:680px;line-height:1.6">Fuentes primarias (documentos y testimonios de época), secundarias (libros, artículos académicos e informes institucionales) y audiovisuales.</p>
+    <div class="sources-cols">
+
+      <div class="source-item">
+        <p class="source-type source-type-p">Fuente primaria</p>
+        <p class="source-title">Discurso de Jruschov sobre la Vostok 6 · 1963</p>
+        <p class="source-detail">Archivo TASS / Congreso Mundial de Mujeres, Moscú. Citado en Rosholt, R. (1966). <em>An Administrative History of NASA.</em> NASA SP-4101.</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-p">Fuente primaria</p>
+        <p class="source-title">Tereshkova, V. · Memorias y entrevistas · 1963–2023</p>
+        <p class="source-detail">BBC entrevista 50° aniversario (2013); testimonio ante UNESCO (1966); relato del error Vostok 6. Publicados por Roscosmos.</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-s">Fuente secundaria</p>
+        <p class="source-title">Burgess, C. &amp; Hall, R. · <em>The First Soviet Cosmonaut Team</em> · 2009</p>
+        <p class="source-detail">Springer-Praxis Books. Selección y entrenamiento de cosmonautas soviéticas; contexto de la misión Vostok 6.</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-s">Fuente secundaria</p>
+        <p class="source-title">Garber, S. &amp; Launius, R. · <em>A Brief History of NASA</em> · 2005</p>
+        <p class="source-detail">NASA History Office. Mercury 13, selección de astronautas 1978, misión STS-7. history.nasa.gov</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-s">Fuente secundaria</p>
+        <p class="source-title">Ackmann, M. · <em>The Mercury 13</em> · 2003</p>
+        <p class="source-detail">Random House. Programa de entrenamiento femenino 1960–62 y audiencia del Congreso que negó el acceso al programa Mercury.</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-s">Fuente secundaria</p>
+        <p class="source-title">UNESCO · <em>Status and Trends of Women in Science</em> · 2025</p>
+        <p class="source-detail">31,1% investigadoras (2022); 35% graduadas STEM; barreras sistémicas. unesco.org/open-access</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-s">Fuente secundaria</p>
+        <p class="source-title">Ilic, M. · <em>Tereshkova's Girls: Space Run and Women's Empowerment in the USSR</em> · 2022</p>
+        <p class="source-detail">ILCML / She Thought It. Análisis crítico de la instrumentalización soviética del vuelo de Tereshkova.</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-s">Fuente secundaria</p>
+        <p class="source-title">Tereshkova, V. · <em>Address to UNESCO</em> · <em>Clio</em>, Vol. 57 · 2023</p>
+        <p class="source-detail">Edición crítica del discurso de 1966. Cairn.info. DOI: 10.4000/clio.20847</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-m">Fuente hemerográfica</p>
+        <p class="source-title"><em>Springfield Union</em> 17 jun 1963 / <em>Chicago Tribune</em> 18 jun 1963</p>
+        <p class="source-detail">Titulares originales. Colección digitalizada en rarenewspapers.com y archivo Chicago Tribune.</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-m">Fuente institucional</p>
+        <p class="source-title">NASA · Fichas biográficas: Sally Ride &amp; Eileen Collins · 2023</p>
+        <p class="source-detail">Datos oficiales de misiones STS-7 (1983) y STS-63/93 (1995/1999). jsc.nasa.gov/bios</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-m">Fuente audiovisual</p>
+        <p class="source-title">BBC · <em>The Space Race</em> · 2005</p>
+        <p class="source-detail">Documental, 4 episodios. Archivos desclasificados soviéticos y estadounidenses.</p>
+      </div>
+
+      <div class="source-item">
+        <p class="source-type source-type-s">Fuente secundaria</p>
+        <p class="source-title">Chertok, B. · <em>Rockets and People</em>, Vol. 2 · 2006</p>
+        <p class="source-detail">NASA History Series SP-2006-4110. Memorias técnicas del ingeniero jefe soviético; versión rusa sobre el vuelo Vostok 6.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- #main -->
+
+<script>
+/* ── STARS ── */
+(function(){
+  const c=document.getElementById("stars-canvas"),ctx=c.getContext("2d");
+  let stars=[];
+  function resize(){c.width=innerWidth;c.height=innerHeight;}
+  function init(){stars=[];for(let i=0;i<200;i++)stars.push({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.3+.3,o:Math.random()*.6+.2,s:Math.random()*.3+.05});}
+  function draw(){ctx.clearRect(0,0,c.width,c.height);stars.forEach(s=>{s.o+=Math.sin(Date.now()*s.s*.001)*.005;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${Math.max(.1,Math.min(.9,s.o))})`;ctx.fill();});requestAnimationFrame(draw);}
+  resize();init();draw();
+  window.addEventListener("resize",()=>{resize();init();});
+})();
+
+/* ── LANDING ── */
+function startExploring(){
+  document.getElementById("landing").classList.add("hidden");
+  const main=document.getElementById("main");
+  main.classList.add("visible");
+  /* force reveal immediately after display:block kicks in */
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    forceReveal(document.getElementById("contexto"));
+    updateProgress();
+  }));
+}
+
+/* ── SECTION SWITCHING ── */
+function showSection(id,btn){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
+  btn.classList.add("active");
+  const sec=document.getElementById(id);
+  sec.classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+  /* trigger reveals with a tiny delay so elements are painted */
+  requestAnimationFrame(()=>requestAnimationFrame(()=>forceReveal(sec)));
+}
+
+/* ── REVEAL — force-trigger all .reveal inside a section ── */
+function forceReveal(section){
+  const items=section.querySelectorAll(".reveal");
+  items.forEach((el,i)=>{
+    el.style.transitionDelay=(i*0.06)+"s";
+    /* use rAF so each one gets a fresh paint frame */
+    requestAnimationFrame(()=>el.classList.add("in"));
+  });
+}
+
+/* ── PIONEER DATA ── */
+const pioneers={
+  vt:{name:"Valentina Tereshkova",quote:'"¡Eh, cielo, quítate el sombrero, que allá voy!" — al despegar en la Vostok 6, 16 de junio de 1963 (verso de Vladímir Mayakovski)',color:"var(--violet)",
+    fields:[["Nacimiento","6 de marzo de 1937 · Máslennikovo, orillas del Volga"],["Origen","Obrera textil, hija de tractorista fallecido en la Guerra de Invierno. 126 saltos en paracaídas antes de ser seleccionada."],["Misión","Vostok 6 · 16–19 jun 1963 · 48 órbitas · ~71 horas en el espacio"],["Hito","Primera mujer en el espacio. Voló más tiempo que todos los astronautas de EE.UU. juntos hasta esa fecha."],["Distinción","Héroe de la Unión Soviética · miembro del Soviet Supremo (1966)"],["Dato clave","Detectó un error de programación que habría hecho ascender la nave en lugar de descender, y lo corrigió manualmente."]]},
+  ss:{name:"Svetlana Savitskaya",quote:"Piloto de pruebas, campeona mundial de acrobacia aérea (1970) y primera mujer en realizar una caminata espacial.",color:"var(--blue)",
+    fields:[["Nacimiento","8 de agosto de 1948 · Moscú"],["Formación","Piloto de pruebas. Campeona mundial de acrobacia aérea. Récords de velocidad en aviones MiG."],["Misión 1","Soyuz T-7 · 19 ago 1982 · Salyut 7 · 2ª mujer en el espacio"],["Misión 2","Soyuz T-12 · 25 jul 1984 · 1ª caminata espacial femenina (3h 35min). Cortó y soldó metales en el exterior de la estación."],["Récord","Primera mujer en volar al espacio dos veces."],["Anécdota","Al llegar a la Salyut 7, sus colegas le entregaron un delantal y le sugirieron que se 'pusiera a trabajar'."]]},
+  sr:{name:"Sally Ride",quote:'"Es una pena que esto sea tan importante. Es una pena que nuestra sociedad no esté más avanzada." — 1983',color:"var(--gold)",
+    fields:[["Nacimiento","26 de mayo de 1951 · Encino, California"],["Formación","Doctora en Física por Stanford. Seleccionada en 1978 cuando la NASA admitió mujeres por primera vez."],["Misión","Challenger STS-7 · 18 jun 1983 · astronauta más joven de EE.UU. hasta entonces (32 años)"],["Hito","Primera mujer estadounidense en el espacio, 20 años exactos después de Tereshkova."],["Legado","Fundó Sally Ride Science para promover el interés de las niñas en la ciencia."],["Dato","La prensa le preguntó qué maquillaje llevaría y si lloraría ante un problema. Respondió con dignidad."]]},
+  ec:{name:"Eileen Collins",quote:'"Un gran paso para las mujeres y un salto gigante para la humanidad." — Hillary Clinton al anunciar su misión como comandante',color:"var(--green)",
+    fields:[["Nacimiento","19 de noviembre de 1956 · Elmira, Nueva York"],["Formación","Piloto e instructora de la Fuerza Aérea. Más de 6.000 horas de vuelo en 30+ tipos de aeronaves."],["Misión 1","STS-63 · feb 1995 · 1ª mujer en pilotar un transbordador espacial."],["Misión 2","STS-93 · jul 1999 · 1ª mujer comandante. Desplegó el Observatorio de rayos X Chandra."],["Misión 3","STS-114 · 2005 · 'regreso al vuelo' tras el desastre del Columbia."],["Distinción","Brigadier General USAF · Medalla del Congreso de Honor del Espacio."]]}
+};
+
+function selectPioneer(card){
+  document.querySelectorAll(".pioneer-card").forEach(c=>c.classList.remove("selected"));
+  card.classList.add("selected");
+  const p=pioneers[card.dataset.p];
+  document.getElementById("pd-inner").innerHTML=`
+    <p class="pioneer-detail-name" style="color:${p.color}">${p.name}</p>
+    <p class="pioneer-detail-quote">${p.quote}</p>
+    <div class="detail-grid">
+      ${p.fields.map(([l,v])=>`<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-val">${v}</span></div>`).join("")}
+    </div>`;
+  const panel=document.getElementById("pioneer-detail");
+  panel.classList.add("open");
+  panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+selectPioneer(document.querySelector(".pioneer-card"));
+
+/* ── SOURCES TOGGLE ── */
+function toggleSources(){
+  const list=document.getElementById("sources-list");
+  const icon=document.getElementById("src-icon");
+  const btn=document.getElementById("sources-btn");
+  const open=list.classList.toggle("open");
+  icon.classList.toggle("open",open);
+  btn.setAttribute("aria-expanded",open);
+}
+
+/* ── PROGRESS BAR ── */
+function updateProgress(){
+  const bar=document.getElementById("progress-bar");
+  window.addEventListener("scroll",()=>{
+    const h=document.documentElement.scrollHeight-innerHeight;
+    bar.style.width=(h>0?(scrollY/h)*100:0)+"%";
+  });
+}
+</script>
+</body>
+</html>
